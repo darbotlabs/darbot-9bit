@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitNet Tetris Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --grey-100: #151515;
+            --grey-200: #1f1f1f;
+            --grey-300: #282828;
+            --grey-400: #3a3a3a;
+            --neon-cyan: #779ECB;
+            --neon-magenta: #ff006e;
+            --neon-lime: #b8ff00;
+            --neon-amber: #ffbf00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--grey-100);
+            color: var(--neon-cyan);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        #gameCanvas {
+            background-color: var(--grey-200);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            position: relative;
+        }
+
+        #gameCanvas::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        #sidePanel {
+            background-color: var(--grey-200);
+            padding: 20px;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 5px;
+            min-width: 250px;
+        }
+
+        .service-panel {
+            background-color: var(--grey-300);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid var(--neon-cyan);
+        }
+
+        .service-panel h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8em;
+            color: var(--neon-magenta);
+            margin-bottom: 10px;
+        }
+
+        .service-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-indicator.online {
+            background-color: var(--neon-lime);
+            box-shadow: 0 0 10px var(--neon-lime);
+        }
+
+        .status-indicator.offline {
+            background-color: var(--neon-magenta);
+            box-shadow: 0 0 10px var(--neon-magenta);
+        }
+
+        .model-select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: var(--grey-400);
+            color: var(--neon-cyan);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 3px;
+        }
+
+        .service-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .service-controls button {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        .service-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        button {
+            background-color: var(--grey-300);
+            color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            padding: 10px 20px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        button:hover {
+            background-color: var(--neon-cyan);
+            color: var(--grey-100);
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        #logBox {
+            background-color: var(--grey-300);
+            color: var(--neon-lime);
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            margin-top: 20px;
+            border: 1px solid var(--neon-cyan);
+        }
+
+        h1, h2 {
+            font-family: 'Press Start 2P', cursive;
+            margin-bottom: 20px;
+            color: var(--neon-magenta);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--grey-400);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--neon-cyan);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--neon-magenta);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="gameCanvas" width="300" height="600"></canvas>
+        <div id="sidePanel">
+            <h2>BitNet Tetris</h2>
+            
+            <div class="service-panel">
+                <h3>BitNet Service</h3>
+                <div class="service-status">
+                    <div id="statusIndicator" class="status-indicator offline"></div>
+                    <span id="serviceStatus">Offline</span>
+                </div>
+                <select id="modelSelect" class="model-select" disabled>
+                    <option value="BitNet-b1.58-2B-4T">BitNet-b1.58-2B-4T</option>
+                    <option value="BitNet-b1.58-2B-8T">BitNet-b1.58-2B-8T</option>
+                    <option value="BitNet-b1.58-4B-4T">BitNet-b1.58-4B-4T</option>
+                </select>
+                <div class="service-controls">
+                    <button id="startServiceBtn">Start Service</button>
+                    <button id="stopServiceBtn" disabled>Stop Service</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">Score: <span id="score">0</span></div>
+                <div class="stat-item">Level: <span id="level">1</span></div>
+                <div class="stat-item">Lines: <span id="lines">0</span></div>
+            </div>
+            <button id="startPauseBtn">Start Game</button>
+            <div class="toggle-container">
+                <span>BitNet Auto-Play</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoPlayToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="stat-item">Last Move: <span id="lastMove">-</span></div>
+            <div class="stat-item">Latency: <span id="latency">-</span> ms</div>
+            <pre id="logBox"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Tetris Game Constants
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 30;
+        const COLORS = {
+            'I': '#00f0f0',
+            'O': '#f0f000',
+            'T': '#a000f0',
+            'S': '#00f000',
+            'Z': '#f00000',
+            'J': '#0000f0',
+            'L': '#f0a000'
+        };
+
+        // Tetromino Definitions with SRS Wall Kicks
+        const SHAPES = {
+            'I': [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
+            'O': [[1,1], [1,1]],
+            'T': [[0,1,0], [1,1,1], [0,0,0]],
+            'S': [[0,1,1], [1,1,0], [0,0,0]],
+            'Z': [[1,1,0], [0,1,1], [0,0,0]],
+            'J': [[1,0,0], [1,1,1], [0,0,0]],
+            'L': [[0,0,1], [1,1,1], [0,0,0]]
+        };
+
+        // SRS Wall Kick Data
+        const WALL_KICKS = {
+            'I': [
+                [[0,0], [-2,0], [1,0], [-2,-1], [1,2]],  // 0->R
+                [[0,0], [-1,0], [2,0], [-1,2], [2,-1]],  // R->2
+                [[0,0], [2,0], [-1,0], [2,1], [-1,-2]],  // 2->L
+                [[0,0], [1,0], [-2,0], [1,-2], [-2,1]]   // L->0
+            ],
+            'default': [
+                [[0,0], [-1,0], [-1,1], [0,-2], [-1,-2]],  // 0->R
+                [[0,0], [1,0], [1,-1], [0,2], [1,2]],      // R->2
+                [[0,0], [1,0], [1,1], [0,-2], [1,-2]],     // 2->L
+                [[0,0], [-1,0], [-1,-1], [0,2], [-1,2]]    // L->0
+            ]
+        };
+
+        // Scoring System
+        const SCORE_TABLE = {
+            SINGLE: 100,
+            DOUBLE: 300,
+            TRIPLE: 500,
+            TETRIS: 800,
+            SOFT_DROP: 1,
+            HARD_DROP: 2
+        };
+
+        // Game State
+        let gameState = {
+            board: Array(ROWS).fill().map(() => Array(COLS).fill(' ')),
+            active: null,
+            hold: null,
+            nextQueue: [],
+            frame: 0,
+            score: 0,
+            lines: 0,
+            level: 1,
+            isGameOver: false,
+            isPaused: true,
+            isAutoPlay: false,
+            lastMove: null,
+            lastLatency: null,
+            dropCounter: 0,
+            lockDelay: 0,
+            lockDelayMax: 30,
+            gravity: 1
+        };
+
+        // Canvas Setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = COLS * BLOCK_SIZE;
+        canvas.height = ROWS * BLOCK_SIZE;
+
+        // UI Elements
+        const startPauseBtn = document.getElementById('startPauseBtn');
+        const autoPlayToggle = document.getElementById('autoPlayToggle');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const linesDisplay = document.getElementById('lines');
+        const lastMoveDisplay = document.getElementById('lastMove');
+        const latencyDisplay = document.getElementById('latency');
+        const logBox = document.getElementById('logBox');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const serviceStatus = document.getElementById('serviceStatus');
+        const modelSelect = document.getElementById('modelSelect');
+        const startServiceBtn = document.getElementById('startServiceBtn');
+        const stopServiceBtn = document.getElementById('stopServiceBtn');
+
+        // Service Management Settings
+        let serviceCheckInterval = null;
+        const SERVICE_PORT = 7861; // Change to use 7861 instead of 7860
+        const DARBOT_PORTAL_URL = `http://localhost:${SERVICE_PORT}`;
+        const MAX_RETRIES = 5;
+        let retryCount = 0;
+
+        async function checkServiceStatus() {
+            try {
+                log(`Checking service on port ${SERVICE_PORT} (Attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                
+                // Try the direct API endpoint
+                const response = await fetch(`${DARBOT_PORTAL_URL}/health`, {
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    retryCount = 0;
+                    updateServiceStatus(true);
+                    log(`Service connected successfully on port ${SERVICE_PORT}!`);
+                    return true;
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    log('Service check timed out.');
+                } else {
+                    log(`Service check error: ${error.message}`);
+                }
+                
+                retryCount++;
+                if (retryCount >= MAX_RETRIES) {
+                    log(`Failed to connect after ${MAX_RETRIES} attempts.`);
+                    retryCount = 0;
+                }
+                
+                updateServiceStatus(false);
+                return false;
+            }
+            return false;
+        }
+
+        function updateServiceStatus(isOnline) {
+            if (isOnline) {
+                statusIndicator.classList.remove('offline');
+                statusIndicator.classList.add('online');
+                serviceStatus.textContent = 'Online';
+                startServiceBtn.disabled = true;
+                stopServiceBtn.disabled = false;
+                modelSelect.disabled = false;
+                autoPlayToggle.disabled = false;
+            } else {
+                statusIndicator.classList.remove('online');
+                statusIndicator.classList.add('offline');
+                serviceStatus.textContent = 'Offline';
+                startServiceBtn.disabled = false;
+                stopServiceBtn.disabled = true;
+                modelSelect.disabled = true;
+                autoPlayToggle.disabled = true;
+                if (gameState.isAutoPlay) {
+                    gameState.isAutoPlay = false;
+                    autoPlayToggle.checked = false;
+                    if (autoPlayInterval) {
+                        clearInterval(autoPlayInterval);
+                        autoPlayInterval = null;
+                    }
+                }
+            }
+        }
+
+        async function startBitNetService() {
+            try {
+                log('Attempting to start BitNet service...');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                const response = await fetch(`${DARBOT_PORTAL_URL}/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: modelSelect.value
+                    }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+
+                if (!response.ok) throw new Error('Failed to start service');
+                
+                log('Start command sent successfully. Waiting for service to initialize...');
+                startServiceStatusCheck();
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    log('Service start request timed out. The server might be starting but not responding yet.');
+                    startServiceStatusCheck(); // Start checking anyway
+                } else {
+                    log(`Error starting service: ${error.message}`);
+                }
+            }
+        }
+
+        async function stopBitNetService() {
+            try {
+                const response = await fetch(`${DARBOT_PORTAL_URL}/stop`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error('Failed to stop service');
+                
+                log('Stopping BitNet service...');
+                updateServiceStatus(false);
+            } catch (error) {
+                log(`Error stopping service: ${error.message}`);
+            }
+        }
+
+        function startServiceStatusCheck() {
+            if (serviceCheckInterval) {
+                clearInterval(serviceCheckInterval);
+            }
+            retryCount = 0;
+            log('Beginning service status checks...');
+            
+            // First immediate check
+            checkServiceStatus();
+            
+            // Then periodic checks
+            serviceCheckInterval = setInterval(async () => {
+                const isOnline = await checkServiceStatus();
+                if (isOnline) {
+                    log('Service is now fully operational.');
+                    clearInterval(serviceCheckInterval);
+                    serviceCheckInterval = null;
+                } else if (retryCount >= MAX_RETRIES) {
+                    log('Exceeded maximum retry attempts. Please check the service or try restarting.');
+                    clearInterval(serviceCheckInterval);
+                    serviceCheckInterval = null;
+                }
+            }, 3000); // Check every 3 seconds
+        }
+
+        // Service Control Event Listeners
+        startServiceBtn.addEventListener('click', startBitNetService);
+        stopServiceBtn.addEventListener('click', stopBitNetService);
+        modelSelect.addEventListener('change', () => {
+            log(`Selected model: ${modelSelect.value}`);
+        });
+
+        // Initial service status check
+        checkServiceStatus();
+
+        // Add fallback mode toggle
+        const useFallbackModeCheckbox = document.createElement('input');
+        useFallbackModeCheckbox.type = 'checkbox';
+        useFallbackModeCheckbox.id = 'fallbackModeToggle';
+        
+        const fallbackModeLabel = document.createElement('label');
+        fallbackModeLabel.htmlFor = 'fallbackModeToggle';
+        fallbackModeLabel.textContent = 'Use Fallback Mode';
+        
+        const fallbackModeContainer = document.createElement('div');
+        fallbackModeContainer.className = 'toggle-container';
+        fallbackModeContainer.appendChild(fallbackModeLabel);
+        
+        const fallbackModeSwitch = document.createElement('label');
+        fallbackModeSwitch.className = 'toggle-switch';
+        fallbackModeSwitch.appendChild(useFallbackModeCheckbox);
+        
+        const fallbackModeSlider = document.createElement('span');
+        fallbackModeSlider.className = 'slider';
+        fallbackModeSwitch.appendChild(fallbackModeSlider);
+        
+        fallbackModeContainer.appendChild(fallbackModeSwitch);
+        
+        // Insert after the service panel
+        const servicePanel = document.querySelector('.service-panel');
+        servicePanel.parentNode.insertBefore(fallbackModeContainer, servicePanel.nextSibling);
+        
+        let useFallbackMode = false;
+        
+        useFallbackModeCheckbox.addEventListener('change', (e) => {
+            useFallbackMode = e.target.checked;
+            log(`Fallback mode ${useFallbackMode ? 'enabled' : 'disabled'}`);
+            
+            if (useFallbackMode) {
+                // Enable auto-play toggle even if service is offline
+                autoPlayToggle.disabled = false;
+            } else {
+                // Reset to normal behavior based on service status
+                autoPlayToggle.disabled = !statusIndicator.classList.contains('online');
+            }
+        });
+
+        // Helper Functions
+        function createPiece(type) {
+            return {
+                type,
+                x: Math.floor(COLS / 2) - Math.floor(SHAPES[type][0].length / 2),
+                y: 0,
+                rot: 0
+            };
+        }
+
+        function getNextPiece() {
+            if (gameState.nextQueue.length === 0) {
+                const pieces = Object.keys(SHAPES);
+                for (let i = 0; i < 7; i++) {
+                    const randomIndex = Math.floor(Math.random() * pieces.length);
+                    gameState.nextQueue.push(pieces[randomIndex]);
+                }
+            }
+            return gameState.nextQueue.shift();
+        }
+
+        function rotateMatrix(matrix) {
+            const N = matrix.length;
+            const result = Array(N).fill().map(() => Array(N).fill(0));
+            for (let i = 0; i < N; i++) {
+                for (let j = 0; j < N; j++) {
+                    result[j][N-1-i] = matrix[i][j];
+                }
+            }
+            return result;
+        }
+
+        function getPieceMatrix(piece) {
+            let matrix = SHAPES[piece.type];
+            for (let i = 0; i < piece.rot; i++) {
+                matrix = rotateMatrix(matrix);
+            }
+            return matrix;
+        }
+
+        function checkCollision(piece, offsetX = 0, offsetY = 0) {
+            const matrix = getPieceMatrix(piece);
+            for (let y = 0; y < matrix.length; y++) {
+                for (let x = 0; x < matrix[y].length; x++) {
+                    if (matrix[y][x]) {
+                        const boardX = piece.x + x + offsetX;
+                        const boardY = piece.y + y + offsetY;
+                        if (boardX < 0 || boardX >= COLS || 
+                            boardY >= ROWS || 
+                            (boardY >= 0 && gameState.board[boardY][boardX] !== ' ')) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function lockPiece() {
+            const matrix = getPieceMatrix(gameState.active);
+            for (let y = 0; y < matrix.length; y++) {
+                for (let x = 0; x < matrix[y].length; x++) {
+                    if (matrix[y][x]) {
+                        const boardY = gameState.active.y + y;
+                        if (boardY < 0) {
+                            gameState.isGameOver = true;
+                            return;
+                        }
+                        gameState.board[boardY][gameState.active.x + x] = gameState.active.type;
+                    }
+                }
+            }
+            clearLines();
+            spawnPiece();
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            for (let y = ROWS - 1; y >= 0; y--) {
+                if (gameState.board[y].every(cell => cell !== ' ')) {
+                    gameState.board.splice(y, 1);
+                    gameState.board.unshift(Array(COLS).fill(' '));
+                    linesCleared++;
+                    y++;
+                }
+            }
+            if (linesCleared > 0) {
+                updateScore(linesCleared);
+            }
+        }
+
+        function updateScore(linesCleared) {
+            const points = [0, SCORE_TABLE.SINGLE, SCORE_TABLE.DOUBLE, 
+                          SCORE_TABLE.TRIPLE, SCORE_TABLE.TETRIS][linesCleared];
+            gameState.score += points * gameState.level;
+            gameState.lines += linesCleared;
+            gameState.level = Math.floor(gameState.lines / 10) + 1;
+            gameState.gravity = Math.min(20, gameState.level);
+            
+            scoreDisplay.textContent = gameState.score;
+            levelDisplay.textContent = gameState.level;
+            linesDisplay.textContent = gameState.lines;
+        }
+
+        function spawnPiece() {
+            gameState.active = createPiece(getNextPiece());
+            gameState.dropCounter = 0;
+            gameState.lockDelay = 0;
+            
+            if (checkCollision(gameState.active)) {
+                gameState.isGameOver = true;
+            }
+        }
+
+        // Tetris API Implementation
+        window.TetrisAPI = {
+            get board() { return gameState.board; },
+            get active() { return gameState.active; },
+            get hold() { return gameState.hold; },
+            get nextQueue() { return gameState.nextQueue; },
+            get frame() { return gameState.frame; },
+            get score() { return gameState.score; },
+            get lines() { return gameState.lines; },
+            get level() { return gameState.level; },
+            get isGameOver() { return gameState.isGameOver; },
+
+            step() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                gameState.frame++;
+                gameState.dropCounter++;
+                
+                if (gameState.dropCounter >= gameState.gravity) {
+                    this.softDrop();
+                }
+            },
+
+            hardDrop() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                while (!checkCollision(gameState.active, 0, 1)) {
+                    gameState.active.y++;
+                }
+                lockPiece();
+                gameState.score += SCORE_TABLE.HARD_DROP;
+                scoreDisplay.textContent = gameState.score;
+            },
+
+            moveLeft() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                if (!checkCollision(gameState.active, -1, 0)) {
+                    gameState.active.x--;
+                    gameState.lockDelay = 0;
+                }
+            },
+
+            moveRight() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                if (!checkCollision(gameState.active, 1, 0)) {
+                    gameState.active.x++;
+                    gameState.lockDelay = 0;
+                }
+            },
+
+            rotateCW() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                const originalRot = gameState.active.rot;
+                gameState.active.rot = (gameState.active.rot + 1) % 4;
+                
+                const kicks = WALL_KICKS[gameState.active.type === 'I' ? 'I' : 'default'][originalRot];
+                let valid = false;
+                
+                for (const [offsetX, offsetY] of kicks) {
+                    if (!checkCollision(gameState.active, offsetX, offsetY)) {
+                        gameState.active.x += offsetX;
+                        gameState.active.y += offsetY;
+                        valid = true;
+                        break;
+                    }
+                }
+                
+                if (!valid) {
+                    gameState.active.rot = originalRot;
+                } else {
+                    gameState.lockDelay = 0;
+                }
+            },
+
+            rotateCCW() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                const originalRot = gameState.active.rot;
+                gameState.active.rot = (gameState.active.rot + 3) % 4;
+                
+                const kicks = WALL_KICKS[gameState.active.type === 'I' ? 'I' : 'default'][(originalRot + 3) % 4];
+                let valid = false;
+                
+                for (const [offsetX, offsetY] of kicks) {
+                    if (!checkCollision(gameState.active, offsetX, offsetY)) {
+                        gameState.active.x += offsetX;
+                        gameState.active.y += offsetY;
+                        valid = true;
+                        break;
+                    }
+                }
+                
+                if (!valid) {
+                    gameState.active.rot = originalRot;
+                } else {
+                    gameState.lockDelay = 0;
+                }
+            },
+
+            softDrop() {
+                if (gameState.isPaused || gameState.isGameOver) return;
+                
+                if (!checkCollision(gameState.active, 0, 1)) {
+                    gameState.active.y++;
+                    gameState.lockDelay = 0;
+                    gameState.score += SCORE_TABLE.SOFT_DROP;
+                    scoreDisplay.textContent = gameState.score;
+                } else {
+                    gameState.lockDelay++;
+                    if (gameState.lockDelay >= gameState.lockDelayMax) {
+                        lockPiece();
+                    }
+                }
+            }
+        };
+
+        // Update BitNet Integration function
+        async function fetchBitNetMove(stateJson) {
+            try {
+                if (useFallbackMode) {
+                    log('Using fallback AI (BitNet service bypassed)');
+                    const move = getFallbackMove();
+                    return move;
+                }
+                
+                const startTime = performance.now();
+                
+                // Connect to BitNet API
+                const response = await fetch(`${DARBOT_PORTAL_URL}/bitnet/v1/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: modelSelect.value,
+                        messages: [
+                            {role: "system", content: "You are a Tetris agent that can only respond with one word: 'left', 'right', 'rotate', 'drop' or 'none'"},
+                            {role: "user", content: stateJson}
+                        ]
+                    })
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                const endTime = performance.now();
+                const latency = Math.round(endTime - startTime);
+                
+                gameState.lastLatency = latency;
+                latencyDisplay.textContent = latency;
+                
+                // Handle the response format to extract the move
+                let move;
+                if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+                    move = data.choices[0].message.content.trim().toLowerCase();
+                } else if (data.text) {
+                    move = data.text.trim().toLowerCase();
+                } else if (data.completion) {
+                    move = data.completion.trim().toLowerCase();
+                } else {
+                    move = 'none'; // Default if we can't parse the response
+                }
+                
+                // Validate the move
+                const validMoves = ['left', 'right', 'rotate', 'drop', 'none'];
+                if (!validMoves.includes(move)) {
+                    log(`Received invalid move "${move}", defaulting to "none"`);
+                    move = 'none';
+                }
+                
+                return move;
+            } catch (error) {
+                log(`Error fetching BitNet move: ${error.message}`);
+                
+                // Use fallback AI if enabled or service is unavailable
+                const move = getFallbackMove();
+                log('Using fallback AI move');
+                
+                // Only disable auto-play if fallback mode is not enabled
+                if (gameState.isAutoPlay && !useFallbackMode) {
+                    gameState.isAutoPlay = false;
+                    autoPlayToggle.checked = false;
+                    if (autoPlayInterval) {
+                        clearInterval(autoPlayInterval);
+                        autoPlayInterval = null;
+                    }
+                    log('Auto-play disabled due to BitNet unavailability');
+                }
+                return move;
+            }
+        }
+
+        // Simple AI Fallback
+        function getFallbackMove() {
+            const piece = gameState.active;
+            if (!piece) return 'none';
+
+            // Try to find the lowest possible position
+            let lowestY = piece.y;
+            let bestX = piece.x;
+            let bestRot = piece.rot;
+            let bestScore = -Infinity;
+
+            // Try all rotations
+            for (let rot = 0; rot < 4; rot++) {
+                const testPiece = { ...piece, rot };
+                const matrix = getPieceMatrix(testPiece);
+                
+                // Try all horizontal positions
+                for (let x = -2; x <= COLS; x++) {
+                    testPiece.x = x;
+                    if (checkCollision(testPiece)) continue;
+
+                    // Drop the piece
+                    let y = testPiece.y;
+                    while (!checkCollision(testPiece, 0, 1)) {
+                        y++;
+                    }
+                    testPiece.y = y;
+
+                    // Score the position
+                    let score = -y; // Prefer lower positions
+                    
+                    // Penalize holes
+                    for (let row = 0; row < matrix.length; row++) {
+                        for (let col = 0; col < matrix[row].length; col++) {
+                            if (matrix[row][col]) {
+                                const boardY = testPiece.y + row;
+                                const boardX = testPiece.x + col;
+                                if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
+                                    // Check for holes below
+                                    for (let checkY = boardY + 1; checkY < ROWS; checkY++) {
+                                        if (gameState.board[checkY][boardX] === ' ') {
+                                            score -= 10;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestX = x;
+                        bestRot = rot;
+                    }
+                }
+            }
+
+            // Determine the move sequence
+            const moves = [];
+            
+            // Rotation
+            const rotDiff = (bestRot - piece.rot + 4) % 4;
+            if (rotDiff === 1) moves.push('rotate');
+            else if (rotDiff === 3) moves.push('rotate');
+            else if (rotDiff === 2) {
+                moves.push('rotate');
+                moves.push('rotate');
+            }
+
+            // Horizontal movement
+            if (bestX < piece.x) moves.push('left');
+            else if (bestX > piece.x) moves.push('right');
+
+            // Drop
+            moves.push('drop');
+
+            return moves[0] || 'none';
+        }
+
+        // Game State Serialization
+        function serializeGameState() {
+            return JSON.stringify({
+                board: gameState.board,
+                active: gameState.active,
+                nextQueue: gameState.nextQueue,
+                score: gameState.score,
+                level: gameState.level,
+                lines: gameState.lines
+            });
+        }
+
+        // Auto-play Loop
+        let autoPlayInterval = null;
+
+        async function autoPlayLoop() {
+            if (!gameState.isAutoPlay || gameState.isPaused || gameState.isGameOver) return;
+
+            const stateJson = serializeGameState();
+            let move = await fetchBitNetMove(stateJson);
+            
+            // Use fallback if BitNet is unavailable
+            if (!move) {
+                move = getFallbackMove();
+                log('Using fallback AI move');
+            }
+            
+            if (move) {
+                gameState.lastMove = move;
+                lastMoveDisplay.textContent = move;
+                log(`Move: ${move} (${gameState.lastLatency || 'fallback'}ms)`);
+
+                switch (move) {
+                    case 'left':
+                        TetrisAPI.moveLeft();
+                        break;
+                    case 'right':
+                        TetrisAPI.moveRight();
+                        break;
+                    case 'rotate':
+                        TetrisAPI.rotateCW();
+                        break;
+                    case 'drop':
+                        TetrisAPI.hardDrop();
+                        break;
+                    case 'none':
+                        // No action needed
+                        break;
+                    default:
+                        log(`Invalid move received: ${move}`);
+                }
+            }
+        }
+
+        // Update Event Listeners
+        autoPlayToggle.addEventListener('change', (e) => {
+            gameState.isAutoPlay = e.target.checked;
+            log(`Auto-play ${gameState.isAutoPlay ? 'enabled' : 'disabled'}`);
+            
+            if (gameState.isAutoPlay) {
+                autoPlayInterval = setInterval(autoPlayLoop, 250);
+            } else {
+                if (autoPlayInterval) {
+                    clearInterval(autoPlayInterval);
+                    autoPlayInterval = null;
+                }
+            }
+        });
+
+        startPauseBtn.addEventListener('click', () => {
+            gameState.isPaused = !gameState.isPaused;
+            startPauseBtn.textContent = gameState.isPaused ? 'Start Game' : 'Pause';
+            
+            if (gameState.isPaused && autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            } else if (!gameState.isPaused && gameState.isAutoPlay) {
+                autoPlayInterval = setInterval(autoPlayLoop, 250);
+            }
+        });
+
+        // Logging Function
+        function log(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${msg}\n`;
+            logBox.textContent = logEntry + logBox.textContent;
+            
+            // Trim log to 200 lines
+            const lines = logBox.textContent.split('\n');
+            if (lines.length > 200) {
+                logBox.textContent = lines.slice(0, 200).join('\n');
+            }
+        }
+
+        // Game Loop
+        function gameLoop() {
+            if (!gameState.isPaused && !gameState.isGameOver) {
+                TetrisAPI.step();
+                draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Drawing Function
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--grey-200');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw board
+            for (let row = 0; row < ROWS; row++) {
+                for (let col = 0; col < COLS; col++) {
+                    const cell = gameState.board[row][col];
+                    if (cell !== ' ') {
+                        drawBlock(col, row, COLORS[cell]);
+                    }
+                }
+            }
+
+            // Draw active piece
+            if (gameState.active) {
+                const { type, x, y } = gameState.active;
+                const matrix = getPieceMatrix(gameState.active);
+                for (let row = 0; row < matrix.length; row++) {
+                    for (let col = 0; col < matrix[row].length; col++) {
+                        if (matrix[row][col]) {
+                            drawBlock(x + col, y + row, COLORS[type]);
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawBlock(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grey-100');
+            ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE - 1, BLOCK_SIZE - 1);
+        }
+
+        // Initialize game
+        spawnPiece();
+        draw(); // Draw initial state
+        log('Game initialized. Press Start to begin!');
+
+        // Keyboard Controls
+        document.addEventListener('keydown', (e) => {
+            if (gameState.isAutoPlay) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    TetrisAPI.moveLeft();
+                    break;
+                case 'ArrowRight':
+                    TetrisAPI.moveRight();
+                    break;
+                case 'ArrowDown':
+                    TetrisAPI.softDrop();
+                    break;
+                case 'ArrowUp':
+                    TetrisAPI.rotateCW();
+                    break;
+                case 'z':
+                    TetrisAPI.rotateCCW();
+                    break;
+                case ' ':
+                    TetrisAPI.hardDrop();
+                    break;
+            }
+        });
+
+        // Start the game loop
+        gameLoop();
+    </script>
+</body>
+</html>

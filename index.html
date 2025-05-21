@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Darbot Labs – Stealth Mode</title>
+  <!-- Tailwind CSS CDN for quick styling -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="font-sans antialiased">
+  <!-- Hero Section -->
+  <header class="min-h-screen flex flex-col items-center justify-center text-center px-6">
+    <h1 class="text-5xl md:text-6xl text-white tracking-wide mb-4">
+      Darbot Labs
+    </h1>
+    <p class="text-xl text-gray-300 max-w-xl">
+      Innovative tools, protocol infrastructure, and autonomous AI agents – 
+      <br class="hidden md:block" />
+      <em>built quietly in stealth mode.</em>
+    </p>
+  </header>
+
+  <!-- Projects Section -->
+  <section class="py-16 px-6" id="projects">
+    <h2 class="text-3xl text-white font-bold mb-8 text-center">
+      Open Source Projects
+    </h2>
+    <div id="repo-list" class="max-w-3xl mx-auto space-y-4">
+      <!-- Repositories will be injected here by JavaScript -->
+      <noscript>
+        <p class="text-gray-500">[Enable JavaScript to load GitHub projects]</p>
+      </noscript>
+    </div>
+  </section>
+
+  <!-- Stealth Contact Section -->
+  <section class="py-16 px-6 bg-gray-900 card max-w-xl mx-auto text-center" id="contact">
+    <h2 class="text-2xl text-white font-semibold mb-4">
+      We’re Building in Stealth
+    </h2>
+    <p class="text-gray-300 mb-6">
+      Interested in what we’re building? Get in touch with us privately.
+    </p>
+    <!-- Contact form (uses mailto to send an email) -->
+    <form action="mailto:contact@darbotlabs.com" method="POST" enctype="text/plain" class="space-y-4">
+      <div>
+        <input type="text" name="Name" placeholder="Your Name" 
+               class="w-full bg-gray-800 text-gray-200 placeholder-gray-500 px-4 py-2 rounded-sm 
+                      focus:outline-none focus:ring-2 focus:ring-teal-500" required>
+      </div>
+      <div>
+        <input type="email" name="Email" placeholder="Your Email" 
+               class="w-full bg-gray-800 text-gray-200 placeholder-gray-500 px-4 py-2 rounded-sm 
+                      focus:outline-none focus:ring-2 focus:ring-teal-500" required>
+      </div>
+      <div>
+        <textarea name="Message" rows="3" placeholder="Your Message" 
+                  class="w-full bg-gray-800 text-gray-200 placeholder-gray-500 px-4 py-2 rounded-sm 
+                         focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+      </div>
+      <div>
+        <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-white font-medium py 2 px-6 rounded 
+                                   transition duration-200">
+          Contact Us
+        </button>
+      </div>
+    </form>
+    <p class="text-xs text-gray-500 mt-4">
+      (or email us at <a href="mailto:contact@darbotlabs.com" class="underline text-teal-500">contact@darbotlabs.com</a>)
+    </p>
+  </section>
+
+  <!-- JavaScript to fetch and display GitHub repos -->
+  <script src="scripts.js"></script>
+</body>
+</html>
